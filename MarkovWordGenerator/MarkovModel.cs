@@ -43,13 +43,13 @@ namespace MarkovWordGenerator
         {
             if (word.Length >= 2)
             {
-                char fst = word[0];
-                char snd = word[1];
+                char curr = word[0];
+                char next = word[1];
 
-                if (fst >= 'a' && fst <= 'z' && snd >= 'a' && snd <= 'z')
+                if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
                 {
-                    firstCharacters[fst - 'a'].nextChars[snd - 'a'].occurrences += 1;
-                    firstCharacters[fst - 'a'].totalNexts += 1;
+                    firstCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+                    firstCharacters[curr - 'a'].totalNexts += 1;
                 }
                 else
                 {
@@ -60,12 +60,46 @@ namespace MarkovWordGenerator
 
         private void AddMiddleCharacters(string word)
         {
-            throw new NotImplementedException();
+            if (word.Length >= 2)
+            {
+
+                for (int i = 1; i < word.Length - 2; ++i)
+                {
+                    char curr = word[i];
+                    char next = word[i + 1];
+
+                    if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
+                    {
+                        middleCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+                        middleCharacters[curr - 'a'].totalNexts += 1;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Non-lowercase character in AddMiddleCharacters");
+                    }
+                }
+            }
         }
 
         private void AddEndCharacter(string word)
         {
-            throw new NotImplementedException();
+            if (word.Length >= 2)
+            {
+                var lastIndex = word.Length - 1;
+
+                char curr = word[lastIndex - 1];
+                char next = word[lastIndex];
+
+                if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
+                {
+                    finalCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+                    finalCharacters[curr - 'a'].totalNexts += 1;
+                }
+                else
+                {
+                    throw new ArgumentException("Non-lowercase character in AddEndCharacter");
+                }
+            }
         }
 
         struct CharInstance
