@@ -12,11 +12,110 @@ namespace MarkovWordGenerator
         CharacterFunction[] middleCharacters;
         CharacterFunction[] finalCharacters;
 
+        int firsts = 0;
+        int lasts = 0;
+
+        Random rand;
+
         public MarkovModel()
         {
+            rand = new Random();
+
             firstCharacters = InitCharacterFunctions();
             middleCharacters = InitCharacterFunctions();
             finalCharacters = InitCharacterFunctions();
+        }
+
+        public string GenerateWord(int minLen, int maxLen)
+        {
+            string ret = "";
+
+            var wordLength = rand.Next(minLen, maxLen + 1);
+
+            int prev = 0;
+
+            // Get the first character
+            {
+                var firstCharCumulative = 1 + rand.Next(firsts - 1);
+
+
+                int index = 0;
+                int cumulative = 0;
+
+                do
+                {
+                    cumulative += firstCharacters[index].occurrences;
+                    index++;
+                } while (cumulative < firstCharCumulative && index < 25);
+
+                index--;
+                prev = index;
+
+                ret += firstCharacters[index].current;
+            }
+
+            {
+                var nextCharCumulative = 1 + rand.Next(firstCharacters[prev].occurrences - 1);
+
+                // Get the first character
+                int index = 0;
+                int cumulative = 0;
+
+                do
+                {
+                    cumulative += firstCharacters[prev].nextChars[index].occurrences;
+                    index++;
+                } while (cumulative < nextCharCumulative && index < 25);
+
+                index--;
+
+                ret += firstCharacters[prev].nextChars[index].character;
+                
+                prev = index;
+            }
+
+            for (int i = 0; i < wordLength - 3; ++i)
+            {
+                var nextCharCumulative = 1 + rand.Next(middleCharacters[prev].occurrences - 1);
+
+                // Get the first character
+                int index = 0;
+                int cumulative = 0;
+
+                do
+                {
+                    cumulative += middleCharacters[prev].nextChars[index].occurrences;
+                    index++;
+                } while (cumulative < nextCharCumulative && index < 25);
+
+                index--;
+
+                ret += middleCharacters[prev].nextChars[index].character;
+
+                prev = index;
+            }
+
+            {
+                var nextCharCumulative = 1 + rand.Next(finalCharacters[prev].occurrences - 1);
+
+                // Get the first character
+                int index = 0;
+                int cumulative = 0;
+
+                do
+                {
+                    cumulative += finalCharacters[prev].nextChars[index].occurrences;
+                    index++;
+                } while (cumulative < nextCharCumulative && index < 25);
+
+                index--;
+
+                ret += finalCharacters[prev].nextChars[index].character;
+
+                prev = index;
+            }
+
+            return ret;
         }
 
         public void AddWords(string[] words)
@@ -29,7 +128,7 @@ namespace MarkovWordGenerator
 
         public void AddWord(string word)
         {
-            if (word.Length > 3)
+            if (word.Length > 2)
             {
                 var lWord = word.ToLower();
 
@@ -43,13 +142,17 @@ namespace MarkovWordGenerator
         {
             if (word.Length >= 2)
             {
+                firsts++;
+
                 char curr = word[0];
                 char next = word[1];
 
                 if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
                 {
                     firstCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+
                     firstCharacters[curr - 'a'].totalNexts += 1;
+                    firstCharacters[curr - 'a'].occurrences += 1;
                 }
                 else
                 {
@@ -71,7 +174,9 @@ namespace MarkovWordGenerator
                     if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
                     {
                         middleCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+
                         middleCharacters[curr - 'a'].totalNexts += 1;
+                        middleCharacters[curr - 'a'].occurrences += 1;
                     }
                     else
                     {
@@ -85,6 +190,8 @@ namespace MarkovWordGenerator
         {
             if (word.Length >= 2)
             {
+                lasts++;
+
                 var lastIndex = word.Length - 1;
 
                 char curr = word[lastIndex - 1];
@@ -93,7 +200,9 @@ namespace MarkovWordGenerator
                 if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
                 {
                     finalCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
+
                     finalCharacters[curr - 'a'].totalNexts += 1;
+                    finalCharacters[curr - 'a'].occurrences += 1;
                 }
                 else
                 {
@@ -114,6 +223,7 @@ namespace MarkovWordGenerator
             public CharacterFunction(char current)
             {
                 this.current = current;
+                this.occurrences = 0;
                 this.totalNexts = 0;
 
                 nextChars = new CharInstance[26];
@@ -125,8 +235,9 @@ namespace MarkovWordGenerator
             }
 
             public char current;
-            public int totalNexts;
+            public int occurrences;
 
+            public int totalNexts;
             public CharInstance[] nextChars;
         }
 
