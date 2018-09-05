@@ -11,6 +11,17 @@ namespace MarkovWordGenerator
     {
         static void Main(string[] args)
         {
+            var filepath = Filepath();
+
+            // From https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file
+            string[] lines = File.ReadAllLines(filepath);
+
+            var model = new MarkovModel();
+            model.AddWords(lines);
+        }
+
+        static string Filepath()
+        {
             // The path three directories above the executable directory in VS
             // From https://stackoverflow.com/a/14549805
             string wanted_path =
@@ -19,13 +30,7 @@ namespace MarkovWordGenerator
 
             string filepath = $"{wanted_path}\\words_alpha.txt";
 
-            // From https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file
-            string[] lines = File.ReadAllLines(filepath);
-
-            for (var i = 0; i < lines.Length; ++i)
-            {
-                Console.WriteLine("\t" + lines[i]);
-            }
+            return filepath;
         }
     }
 }
