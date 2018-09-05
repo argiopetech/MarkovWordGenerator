@@ -31,23 +31,39 @@ namespace MarkovWordGenerator
         {
             if (word.Length > 3)
             {
-                AddFirstCharacter();
-                AddMiddleCharacters();
-                AddEndCharacter();
+                var lWord = word.ToLower();
+
+                AddFirstCharacter(lWord);
+                AddMiddleCharacters(lWord);
+                AddEndCharacter(lWord);
             }
         }
 
-        private void AddFirstCharacter()
+        private void AddFirstCharacter(string word)
+        {
+            if (word.Length >= 2)
+            {
+                char fst = word[0];
+                char snd = word[1];
+
+                if (fst >= 'a' && fst <= 'z' && snd >= 'a' && snd <= 'z')
+                {
+                    firstCharacters[fst - 'a'].nextChars[snd - 'a'].occurrences += 1;
+                    firstCharacters[fst - 'a'].totalNexts += 1;
+                }
+                else
+                {
+                    throw new ArgumentException("Non-lowercase character in AddFirstCharacter");
+                }
+            }
+        }
+
+        private void AddMiddleCharacters(string word)
         {
             throw new NotImplementedException();
         }
 
-        private void AddMiddleCharacters()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void AddEndCharacter()
+        private void AddEndCharacter(string word)
         {
             throw new NotImplementedException();
         }
@@ -64,7 +80,7 @@ namespace MarkovWordGenerator
             public CharacterFunction(char current)
             {
                 this.current = current;
-                this.total = 0;
+                this.totalNexts = 0;
 
                 nextChars = new CharInstance[26];
 
@@ -75,7 +91,7 @@ namespace MarkovWordGenerator
             }
 
             public char current;
-            public int total;
+            public int totalNexts;
 
             public CharInstance[] nextChars;
         }
