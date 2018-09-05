@@ -19,11 +19,11 @@ namespace MarkovWordGenerator
 
             string filepath = $"{wanted_path}\\words_alpha.txt";
 
+            // From https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file
             string[] lines = File.ReadAllLines(filepath);
 
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < lines.Length; ++i)
             {
-                // use a tab to indent each line of the file.
                 Console.WriteLine("\t" + lines[i]);
             }
         }
