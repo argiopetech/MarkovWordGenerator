@@ -53,3 +53,4 @@ namespace MarkovWordGenerator
             throw new NotImplementedException();
         }
     }
+}
