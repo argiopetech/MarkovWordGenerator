@@ -13,7 +13,6 @@ namespace MarkovWordGenerator
         CharacterFunction[] finalCharacters;
 
         int firsts = 0;
-        int lasts = 0;
 
         Random rand;
 
@@ -29,91 +28,62 @@ namespace MarkovWordGenerator
         public string GenerateWord(int minLen, int maxLen)
         {
             string ret = "";
+            int prev = 0;
 
             var wordLength = rand.Next(minLen, maxLen + 1);
 
-            int prev = 0;
-
-            // Get the first character
-            {
-                var firstCharCumulative = 1 + rand.Next(firsts - 1);
-
-
-                int index = 0;
-                int cumulative = 0;
-
-                do
-                {
-                    cumulative += firstCharacters[index].occurrences;
-                    index++;
-                } while (cumulative < firstCharCumulative && index < 25);
-
-                index--;
-                prev = index;
-
-                ret += firstCharacters[index].current;
-            }
-
-            {
-                var nextCharCumulative = 1 + rand.Next(firstCharacters[prev].occurrences - 1);
-
-                // Get the first character
-                int index = 0;
-                int cumulative = 0;
-
-                do
-                {
-                    cumulative += firstCharacters[prev].nextChars[index].occurrences;
-                    index++;
-                } while (cumulative < nextCharCumulative && index < 25);
-
-                index--;
-
-                ret += firstCharacters[prev].nextChars[index].character;
-                
-                prev = index;
-            }
+            ret += FirstChar(firstCharacters, ref prev);
+            ret += NextChar(firstCharacters, ref prev);
 
             for (int i = 0; i < wordLength - 3; ++i)
             {
-                var nextCharCumulative = 1 + rand.Next(middleCharacters[prev].occurrences - 1);
-
-                // Get the first character
-                int index = 0;
-                int cumulative = 0;
-
-                do
-                {
-                    cumulative += middleCharacters[prev].nextChars[index].occurrences;
-                    index++;
-                } while (cumulative < nextCharCumulative && index < 25);
-
-                index--;
-
-                ret += middleCharacters[prev].nextChars[index].character;
-
-                prev = index;
+                ret += NextChar(middleCharacters, ref prev);
             }
 
+            ret += NextChar(finalCharacters, ref prev);
+
+            return ret;
+        }
+
+        private char FirstChar(CharacterFunction[] arr, ref int prev)
+        {
+            var firstCharCumulative = 1 + rand.Next(firsts - 1);
+
+
+            int index = 0;
+            int cumulative = 0;
+
+            do
             {
-                var nextCharCumulative = 1 + rand.Next(finalCharacters[prev].occurrences - 1);
+                cumulative += arr[index].occurrences;
+                index++;
+            } while (cumulative < firstCharCumulative && index < 25);
 
-                // Get the first character
-                int index = 0;
-                int cumulative = 0;
+            index--;
+            prev = index;
 
-                do
-                {
-                    cumulative += finalCharacters[prev].nextChars[index].occurrences;
-                    index++;
-                } while (cumulative < nextCharCumulative && index < 25);
+            return arr[index].current;
+        }
 
-                index--;
+        private char NextChar(CharacterFunction[] arr, ref int prev)
+        {
+            var nextCharCumulative = 1 + rand.Next(arr[prev].occurrences - 1);
 
-                ret += finalCharacters[prev].nextChars[index].character;
+            // Get the first character
+            int index = 0;
+            int cumulative = 0;
 
-                prev = index;
-            }
+            do
+            {
+                cumulative += arr[prev].nextChars[index].occurrences;
+                index++;
+            } while (cumulative < nextCharCumulative && index < 25);
+
+            index--;
+
+            char ret = arr[prev].nextChars[index].character;
+
+            prev = index;
 
             return ret;
         }
@@ -128,7 +98,7 @@ namespace MarkovWordGenerator
 
         public void AddWord(string word)
         {
-            if (word.Length > 2)
+            if (word.Length >= 2)
             {
                 var lWord = word.ToLower();
 
@@ -140,74 +110,47 @@ namespace MarkovWordGenerator
 
         private void AddFirstCharacter(string word)
         {
-            if (word.Length >= 2)
-            {
-                firsts++;
+            firsts++;
 
-                char curr = word[0];
-                char next = word[1];
+            char curr = word[0];
+            char next = word[1];
 
-                if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
-                {
-                    firstCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
-
-                    firstCharacters[curr - 'a'].totalNexts += 1;
-                    firstCharacters[curr - 'a'].occurrences += 1;
-                }
-                else
-                {
-                    throw new ArgumentException("Non-lowercase character in AddFirstCharacter");
-                }
-            }
+            AddCharacter(firstCharacters, curr, next);
         }
 
         private void AddMiddleCharacters(string word)
         {
-            if (word.Length >= 2)
+            for (int i = 1; i < word.Length - 2; ++i)
             {
+                char curr = word[i];
+                char next = word[i + 1];
 
-                for (int i = 1; i < word.Length - 2; ++i)
-                {
-                    char curr = word[i];
-                    char next = word[i + 1];
-
-                    if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
-                    {
-                        middleCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
-
-                        middleCharacters[curr - 'a'].totalNexts += 1;
-                        middleCharacters[curr - 'a'].occurrences += 1;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Non-lowercase character in AddMiddleCharacters");
-                    }
-                }
+                AddCharacter(middleCharacters, curr, next);
             }
         }
 
         private void AddEndCharacter(string word)
         {
-            if (word.Length >= 2)
+            var lastIndex = word.Length - 1;
+
+            char curr = word[lastIndex - 1];
+            char next = word[lastIndex];
+
+            AddCharacter(finalCharacters, curr, next);
+        }
+
+        private void AddCharacter(CharacterFunction[] arr, char curr, char next)
+        {
+            if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
             {
-                lasts++;
+                arr[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
 
-                var lastIndex = word.Length - 1;
-
-                char curr = word[lastIndex - 1];
-                char next = word[lastIndex];
-
-                if (curr >= 'a' && curr <= 'z' && next >= 'a' && next <= 'z')
-                {
-                    finalCharacters[curr - 'a'].nextChars[next - 'a'].occurrences += 1;
-
-                    finalCharacters[curr - 'a'].totalNexts += 1;
-                    finalCharacters[curr - 'a'].occurrences += 1;
-                }
-                else
-                {
-                    throw new ArgumentException("Non-lowercase character in AddEndCharacter");
-                }
+                arr[curr - 'a'].totalNexts += 1;
+                arr[curr - 'a'].occurrences += 1;
+            }
+            else
+            {
+                throw new ArgumentException("Non-lowercase character in AddEndCharacter");
             }
         }
 
